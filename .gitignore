@@ -1,0 +1,5 @@
+node_modules/
+bestand.db
+uploads/*
+!uploads/.gitkeep
+.superpowers/

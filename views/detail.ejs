@@ -1,0 +1,55 @@
+<%- include('partials/header', { title: item.name }) %>
+
+<div class="page-header">
+  <a href="/" class="back-link">← Übersicht</a>
+</div>
+
+<div class="detail-layout">
+  <div class="detail-photo">
+    <% if (item.photo_path) { %>
+      <img src="/uploads/<%= item.photo_path %>" alt="<%= item.name %>">
+    <% } else { %>
+      🔧
+    <% } %>
+  </div>
+
+  <div class="detail-info">
+    <h1><%= item.name %></h1>
+
+    <% if (item.description) { %>
+      <div class="info-row">
+        <div class="info-label">Beschreibung</div>
+        <div class="info-value"><%= item.description %></div>
+      </div>
+    <% } %>
+
+    <% if (item.location) { %>
+      <div class="info-row">
+        <div class="info-label">Aufbewahrungsort</div>
+        <div class="info-value">📍 <%= item.location %></div>
+      </div>
+    <% } %>
+
+    <% if (item.quantity) { %>
+      <div class="info-row">
+        <div class="info-label">Menge / Anzahl</div>
+        <div class="info-value"><%= item.quantity %></div>
+      </div>
+    <% } %>
+
+    <div class="info-row">
+      <div class="info-label">Erfasst am</div>
+      <div class="info-value"><%= new Date(item.created_at).toLocaleDateString('de-AT') %></div>
+    </div>
+
+    <div class="detail-actions">
+      <a href="/items/<%= item.id %>/edit" class="btn btn-primary">Bearbeiten</a>
+      <a href="/items/<%= item.id %>/print" class="btn btn-outline">QR-Etikett drucken</a>
+      <form method="POST" action="/items/<%= item.id %>/delete" onsubmit="return confirm('Wirklich löschen?')">
+        <button type="submit" class="btn btn-danger">Löschen</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

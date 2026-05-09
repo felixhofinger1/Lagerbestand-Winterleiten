@@ -1,0 +1,64 @@
+<%- include('partials/header', { title: title }) %>
+
+<div class="page-header">
+  <% if (item) { %>
+    <a href="/items/<%= item.id %>" class="back-link">← Zurück</a>
+  <% } else { %>
+    <a href="/" class="back-link">← Übersicht</a>
+  <% } %>
+  <h1><%= title %></h1>
+</div>
+
+<div class="form-card">
+  <form method="POST" action="<%= action %>" enctype="multipart/form-data">
+
+    <div class="form-group">
+      <label for="name">Name *</label>
+      <input type="text" id="name" name="name" required
+             value="<%= item ? item.name : '' %>" placeholder="z.B. Kettensäge Stihl MS 250">
+    </div>
+
+    <div class="form-group">
+      <label for="description">Beschreibung</label>
+      <textarea id="description" name="description"
+                placeholder="z.B. 45cm Schwert, benzinbetrieben"><%= item ? item.description : '' %></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="location">Aufbewahrungsort</label>
+      <input type="text" id="location" name="location"
+             value="<%= item ? item.location : '' %>" placeholder="z.B. Werkstatt, Regal links">
+    </div>
+
+    <div class="form-group">
+      <label for="quantity">Menge / Anzahl</label>
+      <input type="text" id="quantity" name="quantity"
+             value="<%= item ? item.quantity : '' %>" placeholder="z.B. 1 oder 5 Liter">
+    </div>
+
+    <div class="form-group">
+      <label for="photo">Foto</label>
+      <input type="file" id="photo" name="photo" accept="image/*">
+      <% if (item && item.photo_path) { %>
+        <div class="current-photo">
+          <img src="/uploads/<%= item.photo_path %>" alt="Aktuelles Foto">
+          <label class="remove-photo-label">
+            <input type="checkbox" name="remove_photo" value="1"> Foto entfernen
+          </label>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary"><%= item ? 'Speichern' : 'Hinzufügen' %></button>
+      <% if (item) { %>
+        <a href="/items/<%= item.id %>" class="btn btn-secondary">Abbrechen</a>
+      <% } else { %>
+        <a href="/" class="btn btn-secondary">Abbrechen</a>
+      <% } %>
+    </div>
+
+  </form>
+</div>
+
+<%- include('partials/footer') %>

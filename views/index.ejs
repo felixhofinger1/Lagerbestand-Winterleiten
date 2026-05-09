@@ -1,0 +1,48 @@
+<%- include('partials/header', { title: 'Übersicht' }) %>
+
+<div class="network-section">
+  <img src="<%= networkQR %>" alt="Netzwerk QR-Code">
+  <div class="network-section-text">
+    <h3>Handy-Zugriff einrichten</h3>
+    <p>QR-Code mit dem Handy scannen oder diese Adresse eingeben:<br>
+    <a href="<%= networkUrl %>"><%= networkUrl %></a></p>
+  </div>
+</div>
+
+<div class="search-bar">
+  <input type="search" id="search" placeholder="Suchen nach Name oder Ort…" autocomplete="off">
+</div>
+
+<% if (items.length === 0) { %>
+  <div class="empty-state">
+    <p>Noch keine Gegenstände erfasst.</p>
+    <a href="/items/new" class="btn btn-primary">Ersten Gegenstand hinzufügen</a>
+  </div>
+<% } else { %>
+  <div class="item-grid" id="item-grid">
+    <% items.forEach(item => { %>
+      <a class="item-card"
+         href="/items/<%= item.id %>"
+         data-search="<%= (item.name + ' ' + item.location).toLowerCase() %>">
+        <div class="item-card-img">
+          <% if (item.photo_path) { %>
+            <img src="/uploads/<%= item.photo_path %>" alt="<%= item.name %>">
+          <% } else { %>
+            🔧
+          <% } %>
+        </div>
+        <div class="item-card-body">
+          <div class="item-card-name"><%= item.name %></div>
+          <% if (item.location) { %>
+            <div class="item-card-location">📍 <%= item.location %></div>
+          <% } %>
+          <% if (item.quantity) { %>
+            <div class="item-card-quantity">Menge: <%= item.quantity %></div>
+          <% } %>
+        </div>
+      </a>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

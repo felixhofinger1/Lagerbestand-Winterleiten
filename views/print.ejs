@@ -1,0 +1,22 @@
+<%- include('partials/header', { title: 'QR-Etikett: ' + item.name }) %>
+
+<div class="page-header">
+  <a href="/items/<%= item.id %>" class="back-link">← Zurück</a>
+  <h1>QR-Etikett drucken</h1>
+</div>
+
+<div class="print-page">
+  <img src="<%= qrDataUrl %>" alt="QR-Code" width="220" height="220">
+  <h2><%= item.name %></h2>
+  <% if (item.location) { %>
+    <p class="location">📍 <%= item.location %></p>
+  <% } %>
+  <p class="url"><%= itemUrl %></p>
+
+  <div class="print-actions">
+    <button onclick="window.print()" class="btn btn-primary">Drucken</button>
+    <a href="/items/<%= item.id %>" class="btn btn-secondary">Zurück</a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
