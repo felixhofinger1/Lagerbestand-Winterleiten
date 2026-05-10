@@ -6,13 +6,14 @@
 </div>
 
 <div class="print-page">
-  <img src="<%= qrDataUrl %>" alt="QR-Code" width="220" height="220">
-  <h2><%= item.name %></h2>
-  <% if (item.location) { %>
-    <p class="location">📍 <%= item.location %></p>
-  <% } %>
-  <p class="url"><%= itemUrl %></p>
-
+  <div class="print-label">
+    <img src="<%= qrDataUrl %>" alt="QR-Code" width="200" height="200">
+    <h2><%= item.name %></h2>
+    <% if (item.location) { %>
+      <p class="location">📍 <%= item.location %></p>
+    <% } %>
+    <p class="url"><%= itemUrl %></p>
+  </div>
   <div class="print-actions">
     <button onclick="window.print()" class="btn btn-primary">Drucken</button>
     <a href="/items/<%= item.id %>" class="btn btn-secondary">Zurück</a>
