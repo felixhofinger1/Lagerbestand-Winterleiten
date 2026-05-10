@@ -563,14 +563,10 @@ async function showPrint(id) {
   document.getElementById('print-name').textContent = item.name;
   document.getElementById('print-loc').textContent  = item.location ? '📍 ' + item.location : '';
   document.getElementById('print-url').textContent  = itemUrl;
-  try {
-    const qr = qrcode(0, 'M');
-    qr.addData(itemUrl);
-    qr.make();
-    document.getElementById('qr-container').innerHTML = qr.createImgTag(5, 0);
-  } catch(e) {
-    document.getElementById('qr-container').textContent = 'QR-Fehler: ' + e.message;
-  }
+  const qr = qrcode(0, 'M');
+  qr.addData(itemUrl);
+  qr.make();
+  document.getElementById('qr-container').innerHTML = qr.createImgTag(5, 0);
 }
 
 // ── UTILS ────────────────────────────────────────────────
