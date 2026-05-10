@@ -330,18 +330,22 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 <script>
 const SUPABASE_URL = 'https://rivkvtxrrwtdfihnbpvk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_TK2eTLKc04wExkBsglNIGg_Vxl1DuUQ';
-const APP_PW       = 'Winterleiten1!';
 const BUCKET       = 'fotos';
 
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── AUTH ─────────────────────────────────────────────────
-const authed = () => localStorage.getItem('lb_ok') === '1';
-function doLogin() {
-  const el = document.getElementById('pw-input');
-  if (el.value === APP_PW) { localStorage.setItem('lb_ok', '1'); bootApp(); }
-  else { el.classList.add('error'); setTimeout(() => el.classList.remove('error'), 400); el.value = ''; el.focus(); }
+async function doLogin() {
+  const el  = document.getElementById('pw-input');
+  const btn = document.querySelector('.login-btn');
+  btn.disabled = true; btn.textContent = '…';
+  const { error } = await sb.auth.signInWithPassword({
+    email: 'felix.hofinger@gmx.at',
+    password: el.value
+  });
+  btn.disabled = false; btn.textContent = 'Einloggen →';
+  if (error) { el.classList.add('error'); setTimeout(() => el.classList.remove('error'), 400); el.value = ''; el.focus(); }
 }
 document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
@@ -352,11 +356,13 @@ function bootApp() {
   document.getElementById('app-main').style.display   = 'block';
   handleHash();
 }
-if (authed()) bootApp();
-else document.getElementById('pw-input').focus();
+sb.auth.onAuthStateChange((_, session) => {
+  if (session) bootApp();
+  else document.getElementById('pw-input').focus();
+});
 
 // ── ROUTING ──────────────────────────────────────────────
-window.addEventListener('hashchange', () => { if (authed()) handleHash(); });
+window.addEventListener('hashchange', handleHash);
 function handleHash() {
   const h = location.hash.slice(1);
   if      (h.startsWith('detail/'))  showDetail(+h.slice(7));
