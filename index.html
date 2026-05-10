@@ -542,13 +542,13 @@ function exportCSV() {
     const lentSince = i.lent_at ? new Date(i.lent_at).toLocaleDateString('de-AT') : '';
     rows.push([
       i.name || '', i.category || '', i.description || '', i.location || '',
-      i.quantity || '', status, i.lent_to || '', lentSince,
+      i.quantity != null ? i.quantity : '', status, i.lent_to || '', lentSince,
       new Date(i.created_at).toLocaleDateString('de-AT')
     ]);
   });
   const csv  = '﻿' + rows.map(r =>
     r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
-  ).join('\r\n');
+  ).join('\r\n') + '\r\n';
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
