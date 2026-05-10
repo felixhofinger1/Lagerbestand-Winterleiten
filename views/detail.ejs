@@ -16,6 +16,34 @@
   <div class="detail-info">
     <h1><%= item.name %></h1>
 
+    <%- /* Status-Boxen */ %>
+    <% if (item.is_defective) { %>
+      <div class="status-box status-box-defect">
+        <div class="status-box-icon">⚠️</div>
+        <div class="status-box-text">
+          <strong>Als defekt markiert</strong>
+          <small>Bitte prüfen oder reparieren lassen</small>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (item.lent_to) { %>
+      <div class="status-box status-box-lent">
+        <div class="status-box-icon">📤</div>
+        <div class="status-box-text">
+          <strong>Verliehen an <%= item.lent_to %></strong>
+          <small>Seit <%= new Date(item.lent_at).toLocaleDateString('de-AT') %></small>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (item.category) { %>
+      <div class="info-row">
+        <div class="info-label">Kategorie</div>
+        <div class="info-value"><span class="badge badge-category"><%= item.category %></span></div>
+      </div>
+    <% } %>
+
     <% if (item.description) { %>
       <div class="info-row">
         <div class="info-label">Beschreibung</div>
@@ -44,11 +72,37 @@
 
     <div class="detail-actions">
       <a href="/items/<%= item.id %>/edit" class="btn btn-primary">Bearbeiten</a>
-      <a href="/items/<%= item.id %>/print" class="btn btn-outline">QR-Etikett drucken</a>
-      <form method="POST" action="/items/<%= item.id %>/delete" onsubmit="return confirm('Wirklich löschen?')">
+      <a href="/items/<%= item.id %>/print" class="btn btn-outline">QR-Etikett</a>
+
+      <%- /* Defekt-Toggle */ %>
+      <form method="POST" action="/items/<%= item.id %>/defect">
+        <button type="submit" class="btn btn-danger">
+          <%= item.is_defective ? '✓ In Ordnung' : '⚠ Defekt melden' %>
+        </button>
+      </form>
+
+      <%- /* Verleihen / Rückgabe */ %>
+      <% if (item.lent_to) { %>
+        <form method="POST" action="/items/<%= item.id %>/return">
+          <button type="submit" class="btn btn-ghost">📥 Zurück erhalten</button>
+        </form>
+      <% } %>
+
+      <form method="POST" action="/items/<%= item.id %>/delete"
+            onsubmit="return confirm('Wirklich löschen?')">
         <button type="submit" class="btn btn-danger">Löschen</button>
       </form>
     </div>
+
+    <%- /* Verleihen-Formular (nur wenn nicht verliehen) */ %>
+    <% if (!item.lent_to) { %>
+      <form method="POST" action="/items/<%= item.id %>/lend" class="lend-form">
+        <input class="lend-input" type="text" name="lent_to"
+               placeholder="An wen verleihen?" required>
+        <button type="submit" class="btn btn-ghost">📤 Verleihen</button>
+      </form>
+    <% } %>
+
   </div>
 </div>
 

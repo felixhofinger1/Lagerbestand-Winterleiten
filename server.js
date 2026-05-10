@@ -48,13 +48,14 @@ app.get('/', async (req, res) => {
 
 // New item form
 app.get('/items/new', (req, res) => {
-  res.render('form', { item: null, action: '/items/new', title: 'Neu hinzufügen' });
+  const categories = db.getCategories();
+  res.render('form', { item: null, action: '/items/new', title: 'Neu hinzufügen', categories });
 });
 
 app.post('/items/new', upload.single('photo'), (req, res) => {
-  const { name, description, location, quantity } = req.body;
+  const { name, description, location, quantity, category } = req.body;
   const photo_path = req.file ? req.file.filename : null;
-  db.create({ name, description, location, quantity, photo_path });
+  db.create({ name, description, location, quantity, photo_path, category });
   res.redirect('/');
 });
 
@@ -69,13 +70,14 @@ app.get('/items/:id', (req, res) => {
 app.get('/items/:id/edit', (req, res) => {
   const item = db.getById(req.params.id);
   if (!item) return res.status(404).send('Nicht gefunden');
-  res.render('form', { item, action: `/items/${item.id}/edit`, title: 'Bearbeiten' });
+  const categories = db.getCategories();
+  res.render('form', { item, action: `/items/${item.id}/edit`, title: 'Bearbeiten', categories });
 });
 
 app.post('/items/:id/edit', upload.single('photo'), (req, res) => {
   const item = db.getById(req.params.id);
   if (!item) return res.status(404).send('Nicht gefunden');
-  const { name, description, location, quantity } = req.body;
+  const { name, description, location, quantity, category } = req.body;
   let photo_path;
   if (req.file) {
     if (item.photo_path) {
@@ -92,7 +94,7 @@ app.post('/items/:id/edit', upload.single('photo'), (req, res) => {
   } else {
     photo_path = item.photo_path;
   }
-  db.update(req.params.id, { name, description, location, quantity, photo_path });
+  db.update(req.params.id, { name, description, location, quantity, photo_path, category });
   res.redirect(`/items/${req.params.id}`);
 });
 
@@ -105,6 +107,28 @@ app.post('/items/:id/delete', (req, res) => {
   }
   db.remove(req.params.id);
   res.redirect('/');
+});
+
+// Verleihen
+app.post('/items/:id/lend', (req, res) => {
+  const { lent_to } = req.body;
+  if (!lent_to || !lent_to.trim()) return res.redirect(`/items/${req.params.id}`);
+  db.setLent(req.params.id, lent_to.trim());
+  res.redirect(`/items/${req.params.id}`);
+});
+
+// Rückgabe
+app.post('/items/:id/return', (req, res) => {
+  db.setLent(req.params.id, null);
+  res.redirect(`/items/${req.params.id}`);
+});
+
+// Defekt togglen
+app.post('/items/:id/defect', (req, res) => {
+  const item = db.getById(req.params.id);
+  if (!item) return res.status(404).send('Nicht gefunden');
+  db.setDefective(req.params.id, !item.is_defective);
+  res.redirect(`/items/${req.params.id}`);
 });
 
 // QR print view
