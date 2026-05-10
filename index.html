@@ -502,7 +502,7 @@ async function showVerliehen() {
   const now = Date.now();
   body.innerHTML = '';
   items.forEach(item => {
-    const days = Math.floor((now - new Date(item.lent_at)) / 86400000);
+    const days = item.lent_at ? Math.floor((now - new Date(item.lent_at)) / 86400000) : 0;
     const row  = document.createElement('div');
     row.className = 'lent-row';
     row.innerHTML = `
@@ -580,15 +580,16 @@ async function lendItem(id) {
   const input = document.getElementById('lend-name-' + id);
   const name = input?.value?.trim();
   if (!name) { input?.focus(); return; }
+  const now = new Date().toISOString();
   const { error } = await sb.from('items').update({
     lent_to: name,
-    lent_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    lent_at: now,
+    updated_at: now
   }).eq('id', id);
   if (error) { showToast('Fehler beim Verleihen.', true); return; }
   showToast('Verliehen an ' + name);
   const item = allItems.find(i => i.id === id);
-  if (item) { item.lent_to = name; item.lent_at = new Date().toISOString(); }
+  if (item) { item.lent_to = name; item.lent_at = now; }
   updateLentBadge();
   showDetail(id);
 }
