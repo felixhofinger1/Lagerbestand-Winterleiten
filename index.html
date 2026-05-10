@@ -216,6 +216,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
     <button class="btn-nav" id="nav-lent-btn" onclick="setHash('verliehen')" style="display:none">
       Verliehen <span class="nav-badge" id="nav-lent-badge">0</span>
     </button>
+    <button class="btn-nav" onclick="exportCSV()">&#8595; Export</button>
     <button class="nav-new" onclick="showForm(null)">+ Neu</button>
   </div>
 </nav>
@@ -529,6 +530,35 @@ async function returnItemFromDashboard(id) {
   if (item) { item.lent_to = null; item.lent_at = null; }
   updateLentBadge();
   showVerliehen();
+}
+
+function exportCSV() {
+  if (!allItems.length) { showToast('Keine Daten — zuerst zur Übersicht navigieren.', true); return; }
+  const rows = [
+    ['Name','Kategorie','Beschreibung','Ort','Menge','Status','Verliehen an','Verliehen seit','Erstellt am']
+  ];
+  allItems.forEach(i => {
+    const status    = i.lent_to ? 'verliehen' : i.is_defective ? 'defekt' : 'ok';
+    const lentSince = i.lent_at ? new Date(i.lent_at).toLocaleDateString('de-AT') : '';
+    rows.push([
+      i.name || '', i.category || '', i.description || '', i.location || '',
+      i.quantity || '', status, i.lent_to || '', lentSince,
+      new Date(i.created_at).toLocaleDateString('de-AT')
+    ]);
+  });
+  const csv  = '﻿' + rows.map(r =>
+    r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
+  ).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `lagerbestand-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Export gestartet ✓');
 }
 
 // ── DETAIL ───────────────────────────────────────────────
