@@ -123,6 +123,18 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 .status-box-defect .status-box-text strong { color: var(--danger); }
 .status-box-text small { font-family: 'IBM Plex Mono', monospace; font-size: .75rem; color: var(--text2); }
 
+/* ── VERLEIH DASHBOARD ──────────────────────────────────── */
+.lent-row { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: .75rem; gap: 1rem; }
+.lent-info { flex: 1; min-width: 0; }
+.lent-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.15rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; cursor: pointer; color: var(--text); margin-bottom: .3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lent-name:hover { color: var(--accent); }
+.lent-meta { font-family: 'IBM Plex Mono', monospace; font-size: .74rem; color: var(--text2); margin-top: .1rem; }
+/* ── NAV ACTIONS ────────────────────────────────────────── */
+.nav-actions { display: flex; align-items: center; gap: .5rem; }
+.btn-nav { padding: .38rem .9rem; background: transparent; color: var(--text2); border: 1px solid var(--border); border-radius: 6px; font-family: 'Barlow Condensed', sans-serif; font-size: .95rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: .3rem; }
+.btn-nav:hover { color: var(--text); border-color: var(--text2); }
+.nav-badge { display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: #18181a; border-radius: 10px; font-size: .7rem; font-weight: 700; min-width: 18px; height: 18px; padding: 0 4px; font-family: 'Barlow Condensed', sans-serif; }
+
 /* ── LEND FORM ─────────────────────────────────────────── */
 .lend-form { display: flex; gap: .5rem; margin-top: .75rem; flex-wrap: wrap; }
 .lend-input { flex: 1; min-width: 140px; padding: .5rem .8rem; background: var(--bg); border: 1.5px solid var(--border); border-radius: 7px; color: var(--text); font-size: .9rem; font-family: 'IBM Plex Sans', sans-serif; transition: border-color .2s; }
@@ -200,7 +212,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 <!-- NAV -->
 <nav id="app-nav" style="display:none">
   <div class="nav-brand" onclick="showOverview()">LAGER<span>.</span></div>
-  <button class="nav-new" onclick="showForm(null)">+ Neu</button>
+  <div class="nav-actions">
+    <button class="btn-nav" id="nav-lent-btn" onclick="setHash('verliehen')" style="display:none">
+      Verliehen <span class="nav-badge" id="nav-lent-badge">0</span>
+    </button>
+    <button class="nav-new" onclick="showForm(null)">+ Neu</button>
+  </div>
 </nav>
 
 <main id="app-main" style="display:none">
@@ -299,6 +316,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
     </div>
   </div>
 
+  <!-- VERLIEHEN -->
+  <div class="view" id="view-verliehen">
+    <button class="back-link" onclick="showOverview()">← Übersicht</button>
+    <div id="verliehen-body"></div>
+  </div>
+
 </main>
 
 <div class="toast" id="toast"></div>
@@ -335,9 +358,10 @@ else document.getElementById('pw-input').focus();
 window.addEventListener('hashchange', () => { if (authed()) handleHash(); });
 function handleHash() {
   const h = location.hash.slice(1);
-  if      (h.startsWith('detail/')) showDetail(+h.slice(7));
-  else if (h.startsWith('edit/'))   showForm(+h.slice(5));
-  else if (h.startsWith('print/'))  showPrint(+h.slice(6));
+  if      (h.startsWith('detail/'))  showDetail(+h.slice(7));
+  else if (h.startsWith('edit/'))    showForm(+h.slice(5));
+  else if (h.startsWith('print/'))   showPrint(+h.slice(6));
+  else if (h === 'verliehen')        showVerliehen();
   else                               showOverview();
 }
 function setHash(h) { location.hash = h; }
@@ -364,6 +388,7 @@ async function showOverview() {
   activeSort = 'newest';
   document.getElementById('sort-select').value = 'newest';
   renderStats();
+  updateLentBadge();
   renderFilterChips();
   renderGrid(sortItems(allItems));
   setTimeout(() => document.getElementById('search-input').focus(), 80);
@@ -454,6 +479,58 @@ function onSortChange() {
   filterItems();
 }
 
+function updateLentBadge() {
+  const count = allItems.filter(i => i.lent_to).length;
+  const btn   = document.getElementById('nav-lent-btn');
+  const badge = document.getElementById('nav-lent-badge');
+  btn.style.display = count ? 'inline-flex' : 'none';
+  badge.textContent = count;
+}
+
+async function showVerliehen() {
+  showView('verliehen');
+  const body = document.getElementById('verliehen-body');
+  body.innerHTML = '<div class="loading"><div class="spinner"></div>Lade…</div>';
+  const { data, error } = await sb.from('items')
+    .select('*').not('lent_to', 'is', null).order('lent_at');
+  if (error) { body.innerHTML = '<div class="loading">Fehler beim Laden.</div>'; return; }
+  const items = data || [];
+  if (!items.length) {
+    body.innerHTML = '<div class="empty"><div class="empty-icon">✓</div><p>Nichts verliehen. Alles da.</p></div>';
+    return;
+  }
+  const now = Date.now();
+  body.innerHTML = '';
+  items.forEach(item => {
+    const days = Math.floor((now - new Date(item.lent_at)) / 86400000);
+    const row  = document.createElement('div');
+    row.className = 'lent-row';
+    row.innerHTML = `
+      <div class="lent-info">
+        <div class="lent-name">${esc(item.name)}</div>
+        <div class="lent-meta">Verliehen an: <strong>${esc(item.lent_to)}</strong></div>
+        <div class="lent-meta">Seit ${new Date(item.lent_at).toLocaleDateString('de-AT')} &middot; ${days} ${days === 1 ? 'Tag' : 'Tage'}</div>
+      </div>
+      <button class="btn btn-ok">Zurück</button>`;
+    row.querySelector('.lent-name').onclick = () => setHash('detail/' + item.id);
+    row.querySelector('button').onclick = () => returnItemFromDashboard(item.id);
+    body.appendChild(row);
+  });
+}
+
+async function returnItemFromDashboard(id) {
+  if (!confirm('Als zurückgegeben markieren?')) return;
+  const { error } = await sb.from('items').update({
+    lent_to: null, lent_at: null, updated_at: new Date().toISOString()
+  }).eq('id', id);
+  if (error) { showToast('Fehler.', true); return; }
+  showToast('Zurück erhalten ✓');
+  const item = allItems.find(i => i.id === id);
+  if (item) { item.lent_to = null; item.lent_at = null; }
+  updateLentBadge();
+  showVerliehen();
+}
+
 // ── DETAIL ───────────────────────────────────────────────
 async function showDetail(id) {
   showView('detail');
@@ -510,6 +587,9 @@ async function lendItem(id) {
   }).eq('id', id);
   if (error) { showToast('Fehler beim Verleihen.', true); return; }
   showToast('Verliehen an ' + name);
+  const item = allItems.find(i => i.id === id);
+  if (item) { item.lent_to = name; item.lent_at = new Date().toISOString(); }
+  updateLentBadge();
   showDetail(id);
 }
 
@@ -520,6 +600,9 @@ async function returnItem(id) {
   }).eq('id', id);
   if (error) { showToast('Fehler.', true); return; }
   showToast('Zurück erhalten ✓');
+  const item = allItems.find(i => i.id === id);
+  if (item) { item.lent_to = null; item.lent_at = null; }
+  updateLentBadge();
   showDetail(id);
 }
 
