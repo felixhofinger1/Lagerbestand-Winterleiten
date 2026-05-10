@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
 :root {
   --bg:         #18181a;
@@ -257,7 +258,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
     <button class="back-link" id="print-back">← Zurück</button>
     <div class="print-page">
       <div class="print-label">
-        <img id="qr-img" alt="QR-Code" style="width:200px;height:200px;border-radius:6px;">
+        <img id="qr-img" alt="" style="width:200px;height:200px;border-radius:6px;display:block;margin:0 auto;">
         <div class="print-name" id="print-name"></div>
         <div class="print-loc"  id="print-loc"></div>
         <div class="print-url"  id="print-url"></div>
@@ -562,8 +563,10 @@ async function showPrint(id) {
   document.getElementById('print-name').textContent = item.name;
   document.getElementById('print-loc').textContent  = item.location ? '📍 ' + item.location : '';
   document.getElementById('print-url').textContent  = itemUrl;
-  document.getElementById('qr-img').src =
-    'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chld=M|2&chl=' + encodeURIComponent(itemUrl);
+  const qr = qrcode(0, 'M');
+  qr.addData(itemUrl);
+  qr.make();
+  document.getElementById('qr-img').src = qr.createDataURL(4, 0);
 }
 
 // ── UTILS ────────────────────────────────────────────────
