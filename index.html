@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <style>
 :root {
   --bg:         #18181a;
@@ -563,9 +562,8 @@ async function showPrint(id) {
   document.getElementById('print-name').textContent = item.name;
   document.getElementById('print-loc').textContent  = item.location ? '📍 ' + item.location : '';
   document.getElementById('print-url').textContent  = itemUrl;
-  QRCode.toDataURL(itemUrl, { width: 200, margin: 2, color: { dark: '#000000', light: '#ffffff' } })
-    .then(url => { document.getElementById('qr-img').src = url; })
-    .catch(() => { document.getElementById('qr-img').alt = 'QR-Code Fehler'; });
+  document.getElementById('qr-img').src =
+    'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chld=M|2&chl=' + encodeURIComponent(itemUrl);
 }
 
 // ── UTILS ────────────────────────────────────────────────
