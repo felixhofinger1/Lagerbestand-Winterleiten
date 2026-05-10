@@ -189,7 +189,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 @media print {
   body { background: white; color: black; }
   nav, .back-link, .print-actions { display: none !important; }
-  #view-overview, #view-detail, #view-form, #view-login { display: none !important; }
+  #view-overview, #view-detail, #view-form, #view-login, #view-verliehen { display: none !important; }
   #view-print { display: block !important; }
   .print-label { border: 2px solid #333; background: white; }
   .print-name, .print-loc { color: black; }
@@ -510,7 +510,7 @@ async function showVerliehen() {
       <div class="lent-info">
         <div class="lent-name">${esc(item.name)}</div>
         <div class="lent-meta">Verliehen an: <strong>${esc(item.lent_to)}</strong></div>
-        <div class="lent-meta">Seit ${new Date(item.lent_at).toLocaleDateString('de-AT')} &middot; ${days} ${days === 1 ? 'Tag' : 'Tage'}</div>
+        <div class="lent-meta">Seit ${item.lent_at ? new Date(item.lent_at).toLocaleDateString('de-AT') : '–'} &middot; ${days} ${days === 1 ? 'Tag' : 'Tage'}</div>
       </div>
       <button class="btn btn-ok">Zurück</button>`;
     row.querySelector('.lent-name').onclick = () => setHash('detail/' + item.id);
@@ -644,6 +644,8 @@ async function toggleDefect(id, value) {
   }).eq('id', id);
   if (error) { showToast('Fehler.', true); return; }
   showToast(value ? 'Als defekt markiert' : 'Als in Ordnung markiert');
+  const item = allItems.find(i => i.id === id);
+  if (item) item.is_defective = value;
   showDetail(id);
 }
 
