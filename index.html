@@ -59,6 +59,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 .search-input:focus { outline: none; border-color: var(--accent); }
 .search-input::placeholder { color: var(--text2); }
 
+/* ── STATS ─────────────────────────────────────────────── */
+.stats-banner { display: flex; gap: 2rem; padding: .5rem 0 1rem; }
+.stats-item { font-family: 'IBM Plex Mono', monospace; font-size: .72rem; color: var(--text2); text-transform: uppercase; letter-spacing: .08em; }
+.stats-num { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--text); letter-spacing: 0; text-transform: none; line-height: 1; margin-bottom: .1rem; }
+.stats-num.accent { color: var(--accent); }
+
 /* ── ITEM GRID ─────────────────────────────────────────── */
 .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1rem; }
 .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; display: flex; flex-direction: column; transition: border-color .2s, transform .2s, box-shadow .2s; }
@@ -192,6 +198,11 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 
   <!-- OVERVIEW -->
   <div class="view" id="view-overview">
+    <div class="stats-banner" id="stats-banner" style="display:none">
+      <div class="stats-item"><span class="stats-num" id="stats-total">0</span>Gesamt</div>
+      <div class="stats-item"><span class="stats-num accent" id="stats-lent">0</span>Verliehen</div>
+      <div class="stats-item"><span class="stats-num" id="stats-defect">0</span>Defekt</div>
+    </div>
     <div class="search-wrap">
       <input class="search-input" id="search-input" type="search"
              placeholder="Suchen nach Name, Ort oder Kategorie…"
@@ -329,6 +340,7 @@ async function showOverview() {
   const { data, error } = await sb.from('items').select('*').order('name');
   if (error) { wrap.innerHTML = '<div class="loading">Fehler beim Laden.</div>'; return; }
   allItems = data || [];
+  renderStats();
   renderGrid(allItems);
   setTimeout(() => document.getElementById('search-input').focus(), 80);
 }
@@ -369,6 +381,15 @@ function filterItems() {
   renderGrid(q ? allItems.filter(i =>
     (i.name + ' ' + (i.location||'') + ' ' + (i.category||'')).toLowerCase().includes(q)
   ) : allItems);
+}
+
+function renderStats() {
+  const lent      = allItems.filter(i => i.lent_to).length;
+  const defective = allItems.filter(i => i.is_defective).length;
+  document.getElementById('stats-total').textContent   = allItems.length;
+  document.getElementById('stats-lent').textContent    = lent;
+  document.getElementById('stats-defect').textContent  = defective;
+  document.getElementById('stats-banner').style.display = allItems.length ? 'flex' : 'none';
 }
 
 // ── DETAIL ───────────────────────────────────────────────
