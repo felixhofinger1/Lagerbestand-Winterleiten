@@ -258,7 +258,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
     <button class="back-link" id="print-back">← Zurück</button>
     <div class="print-page">
       <div class="print-label">
-        <canvas id="qr-canvas"></canvas>
+        <img id="qr-img" alt="QR-Code" style="width:200px;height:200px;border-radius:6px;">
         <div class="print-name" id="print-name"></div>
         <div class="print-loc"  id="print-loc"></div>
         <div class="print-url"  id="print-url"></div>
@@ -563,7 +563,9 @@ async function showPrint(id) {
   document.getElementById('print-name').textContent = item.name;
   document.getElementById('print-loc').textContent  = item.location ? '📍 ' + item.location : '';
   document.getElementById('print-url').textContent  = itemUrl;
-  QRCode.toCanvas(document.getElementById('qr-canvas'), itemUrl, { width: 200, margin: 2, color: { dark: '#000', light: '#fff' } });
+  QRCode.toDataURL(itemUrl, { width: 200, margin: 2, color: { dark: '#000000', light: '#ffffff' } })
+    .then(url => { document.getElementById('qr-img').src = url; })
+    .catch(() => { document.getElementById('qr-img').alt = 'QR-Code Fehler'; });
 }
 
 // ── UTILS ────────────────────────────────────────────────
