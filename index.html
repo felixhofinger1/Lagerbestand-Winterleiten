@@ -65,6 +65,15 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 .stats-num { display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--text); letter-spacing: 0; text-transform: none; line-height: 1; margin-bottom: .1rem; }
 .stats-num.accent { color: var(--accent); }
 
+/* ── FILTER BAR ─────────────────────────────────────────── */
+.filter-bar { display: flex; align-items: flex-start; gap: .75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.chips-wrap { display: flex; gap: .4rem; flex-wrap: wrap; flex: 1; }
+.chip { padding: .25rem .75rem; border-radius: 20px; border: 1.5px solid var(--border); background: transparent; color: var(--text2); font-family: 'IBM Plex Mono', monospace; font-size: .7rem; letter-spacing: .04em; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip.active { background: var(--accent); border-color: var(--accent); color: #18181a; }
+.sort-select { padding: .28rem 1.6rem .28rem .65rem; background: var(--surface); border: 1.5px solid var(--border); border-radius: 7px; color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: .72rem; cursor: pointer; flex-shrink: 0; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888580'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .5rem center; }
+.sort-select:focus { outline: none; border-color: var(--accent); }
+
 /* ── ITEM GRID ─────────────────────────────────────────── */
 .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1rem; }
 .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; display: flex; flex-direction: column; transition: border-color .2s, transform .2s, box-shadow .2s; }
@@ -208,6 +217,15 @@ main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
              placeholder="Suchen nach Name, Ort oder Kategorie…"
              oninput="filterItems()" autocomplete="off">
     </div>
+    <div class="filter-bar" id="filter-bar" style="display:none">
+      <div class="chips-wrap" id="filter-chips"></div>
+      <select class="sort-select" id="sort-select" onchange="onSortChange()">
+        <option value="newest">Neueste zuerst</option>
+        <option value="oldest">Älteste zuerst</option>
+        <option value="name-asc">Name A → Z</option>
+        <option value="name-desc">Name Z → A</option>
+      </select>
+    </div>
     <div id="grid-wrap"></div>
   </div>
 
@@ -330,6 +348,8 @@ function showView(id) {
 
 // ── OVERVIEW ─────────────────────────────────────────────
 let allItems = [];
+let activeCategory = null;
+let activeSort = 'newest';
 
 async function showOverview() {
   setHash('');
@@ -340,8 +360,10 @@ async function showOverview() {
   const { data, error } = await sb.from('items').select('*').order('name');
   if (error) { wrap.innerHTML = '<div class="loading">Fehler beim Laden.</div>'; return; }
   allItems = data || [];
+  activeCategory = null;
   renderStats();
-  renderGrid(allItems);
+  renderFilterChips();
+  renderGrid(sortItems(allItems));
   setTimeout(() => document.getElementById('search-input').focus(), 80);
 }
 
@@ -378,9 +400,12 @@ function renderGrid(items) {
 
 function filterItems() {
   const q = document.getElementById('search-input').value.toLowerCase().trim();
-  renderGrid(q ? allItems.filter(i =>
+  let items = allItems;
+  if (activeCategory) items = items.filter(i => i.category === activeCategory);
+  if (q) items = items.filter(i =>
     (i.name + ' ' + (i.location||'') + ' ' + (i.category||'')).toLowerCase().includes(q)
-  ) : allItems);
+  );
+  renderGrid(sortItems(items));
 }
 
 function renderStats() {
@@ -390,6 +415,36 @@ function renderStats() {
   document.getElementById('stats-lent').textContent    = lent;
   document.getElementById('stats-defect').textContent  = defective;
   document.getElementById('stats-banner').style.display = allItems.length ? 'flex' : 'none';
+}
+
+function renderFilterChips() {
+  const cats = [...new Set(allItems.map(i => i.category).filter(Boolean))].sort();
+  const bar  = document.getElementById('filter-bar');
+  const wrap = document.getElementById('filter-chips');
+  wrap.innerHTML = '';
+  if (!cats.length) { bar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  [null, ...cats].forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (cat === activeCategory ? ' active' : '');
+    btn.textContent = cat || 'Alle';
+    btn.onclick = () => { activeCategory = cat; renderFilterChips(); filterItems(); };
+    wrap.appendChild(btn);
+  });
+}
+
+function sortItems(items) {
+  const arr = [...items];
+  if      (activeSort === 'name-asc')  arr.sort((a, b) => (a.name||'').localeCompare(b.name||'', 'de'));
+  else if (activeSort === 'name-desc') arr.sort((a, b) => (b.name||'').localeCompare(a.name||'', 'de'));
+  else if (activeSort === 'oldest')    arr.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  else                                 arr.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  return arr;
+}
+
+function onSortChange() {
+  activeSort = document.getElementById('sort-select').value;
+  filterItems();
 }
 
 // ── DETAIL ───────────────────────────────────────────────
