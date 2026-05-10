@@ -361,6 +361,8 @@ async function showOverview() {
   if (error) { wrap.innerHTML = '<div class="loading">Fehler beim Laden.</div>'; return; }
   allItems = data || [];
   activeCategory = null;
+  activeSort = 'newest';
+  document.getElementById('sort-select').value = 'newest';
   renderStats();
   renderFilterChips();
   renderGrid(sortItems(allItems));
@@ -422,7 +424,12 @@ function renderFilterChips() {
   const bar  = document.getElementById('filter-bar');
   const wrap = document.getElementById('filter-chips');
   wrap.innerHTML = '';
-  if (!cats.length) { bar.style.display = 'none'; return; }
+  if (!cats.length) {
+    wrap.style.display = 'none';
+    bar.style.display = 'flex';
+    return;
+  }
+  wrap.style.display = 'flex';
   bar.style.display = 'flex';
   [null, ...cats].forEach(cat => {
     const btn = document.createElement('button');
