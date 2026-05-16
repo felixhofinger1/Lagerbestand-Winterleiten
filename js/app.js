@@ -65,6 +65,14 @@ async function showOverview() {
   const { data, error } = await sb.from('items').select('*').order('name');
   if (error) { wrap.innerHTML = '<div class="loading">Fehler beim Laden.</div>'; return; }
   allItems = data || [];
+  // Load first photo per item for grid thumbnails
+  if (allItems.length) {
+    const { data: photos } = await sb.from('item_photos')
+      .select('item_id, url').order('position');
+    const thumbMap = {};
+    (photos || []).forEach(p => { if (!thumbMap[p.item_id]) thumbMap[p.item_id] = p.url; });
+    allItems.forEach(item => { item._thumb = thumbMap[item.id] || null; });
+  }
   activeCategory = null;
   activeSort = 'newest';
   document.getElementById('sort-select').value = 'newest';
