@@ -17,7 +17,6 @@ function openScanner() {
         setHash('detail/' + match[1]);
       } else {
         errEl.style.display = 'block';
-        openScanner();
       }
     },
     () => {}
