@@ -131,7 +131,7 @@ function renderFilterChips() {
   const wrap = document.getElementById('filter-chips');
   wrap.innerHTML = '';
   bar.style.display = 'flex';
-  if (!cats.length) return;
+  if (!cats.length) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'flex';
   [null, ...cats].forEach(cat => {
     const btn = document.createElement('button');

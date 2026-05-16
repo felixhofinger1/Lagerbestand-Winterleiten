@@ -227,7 +227,7 @@ async function submitForm(e) {
   }
 
   btn.disabled = false; btn.textContent = id ? 'Speichern' : 'Hinzufügen';
-  showToast(document.getElementById('f-id').value ? 'Gespeichert!' : 'Hinzugefügt!');
+  showToast(editItem ? 'Gespeichert!' : 'Hinzugefügt!');
   showOverview();
 }
 
